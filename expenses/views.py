@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -39,32 +39,27 @@ class ExpenseCreateView(APIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-class ExpenseApproveView(APIView):
+class ApproveExpenseView(APIView):
 
-    permission_classes = [IsAuthenticated, IsManager]
+    permission_classes = [
+        IsAuthenticated,
+        IsManager
+    ]
 
     def patch(self, request, pk):
-        try:
-            expense = Expense.objects.get(pk=pk)
-        except Expense.DoesNotExist:
-            return Response(
-                {"detail": "Expense not found."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        # Ensure the logged-in manager is the supervisor of the employee who submitted the expense
-        if expense.user.manager != request.user and request.user.role != 'ADMIN':
-            return Response(
-                {"detail": "You are not authorized to approve this expense."},
-                status=status.HTTP_403_FORBIDDEN
-            )
+        expense = get_object_or_404(
+            Expense,
+            pk=pk
+        )
 
         expense.status = 'APPROVED'
         expense.approved_by = request.user
         expense.save()
 
-        serializer = ExpenseSerializer(expense)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({
+            "message": "Expense approved"
+        })
+
 
 class TeamExpenseListView(APIView):
 
