@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-
+from rest_framework import status
 from .models import Expense
 from .serializers import ExpenseSerializer
 
@@ -20,6 +20,6 @@ class ExpenseCreateView(APIView):
 
             serializer.save(user=request.user)
 
-            return Response(serializer.data)
+            return Response(serializer.data,status.HTTP_201_CREATED)
 
-        return Response(serializer.errors)
+        return Response(serializer.errors,status.HTTP_400_BAD_REQUEST)
