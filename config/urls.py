@@ -29,4 +29,6 @@ urlpatterns = [
         TokenRefreshView.as_view(),
         name='token_refresh'
     ),
+
+    path('api/expenses/', include('expenses.urls')),
 ]
