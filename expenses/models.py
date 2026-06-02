@@ -35,7 +35,14 @@ class Expense(models.Model):
         choices=STATUS_CHOICES,
         default='PENDING'
     )
-
+    
+    approved_by = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        related_name='approved_expenses',
+        on_delete=models.SET_NULL
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

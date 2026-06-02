@@ -60,7 +60,17 @@ class ExpenseApproveView(APIView):
             )
 
         expense.status = 'APPROVED'
+        expense.approved_by = request.user
         expense.save()
 
         serializer = ExpenseSerializer(expense)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class TeamExpenseListView(APIView):
+
+    permission_classes = [IsAuthenticated, IsManager]
+
+    def get(self, request):
+        expenses = Expense.objects.filter(user__manager=request.user)
+        serializer = ExpenseSerializer(expenses, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
