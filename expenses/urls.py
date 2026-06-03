@@ -1,11 +1,15 @@
 from django.urls import path
-from .views import ExpenseCreateView, ApproveExpenseView, TeamExpenseListView
+from .views import ExpenseListCreateView, ApproveExpenseView, RejectExpenseView, TeamExpenseListView
 
 urlpatterns = [
-    path('', ExpenseCreateView.as_view()),
+    path('', ExpenseListCreateView.as_view()),
     path(
         '<int:pk>/approve/',
         ApproveExpenseView.as_view()
+    ),
+    path(
+        '<int:pk>/reject/',
+        RejectExpenseView.as_view()
     ),
     path('team/', TeamExpenseListView.as_view()),
 ]

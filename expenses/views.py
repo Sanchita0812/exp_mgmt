@@ -5,14 +5,29 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .models import Expense
 from .serializers import ExpenseSerializer
-from .permissions import IsEmployee, IsManager
+from .permissions import IsEmployee, IsManager, IsAdmin
 from .services import convert_currency 
 
-class ExpenseCreateView(APIView):
+class ExpenseListCreateView(APIView):
 
-    permission_classes = [IsAuthenticated, IsEmployee]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role == 'ADMIN':
+            expenses = Expense.objects.all()
+        else:
+            expenses = Expense.objects.filter(user=request.user)
+
+        serializer = ExpenseSerializer(expenses, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        if request.user.role != 'EMPLOYEE' and request.user.role != 'ADMIN':
+            return Response(
+                {"detail": "Only employees can create expenses."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         serializer = ExpenseSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -39,6 +54,7 @@ class ExpenseCreateView(APIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+
 class ApproveExpenseView(APIView):
 
     permission_classes = [
@@ -58,6 +74,28 @@ class ApproveExpenseView(APIView):
 
         return Response({
             "message": "Expense approved"
+        })
+
+
+class RejectExpenseView(APIView):
+
+    permission_classes = [
+        IsAuthenticated,
+        IsManager
+    ]
+
+    def patch(self, request, pk):
+        expense = get_object_or_404(
+            Expense,
+            pk=pk
+        )
+
+        expense.status = 'REJECTED'
+        expense.approved_by = request.user
+        expense.save()
+
+        return Response({
+            "message": "Expense rejected"
         })
 
 
