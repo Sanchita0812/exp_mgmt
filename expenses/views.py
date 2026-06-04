@@ -6,7 +6,12 @@ from rest_framework import status
 from .models import Expense
 from .serializers import ExpenseSerializer
 from .permissions import IsEmployee, IsManager, IsAdmin
-from .services import convert_currency 
+from .services import convert_currency
+from notifications.tasks import (
+    send_submission_email_task,
+    send_approval_email_task,
+    send_rejection_email_task,
+) 
 
 class ExpenseListCreateView(APIView):
 
@@ -39,10 +44,13 @@ class ExpenseListCreateView(APIView):
                 original_currency
             )
 
-            serializer.save(
+            expense = serializer.save(
                 user=request.user,
                 converted_amount_inr=converted_amount
             )
+
+            # Queue celery task to send submission email notification
+            send_submission_email_task.delay(expense.id)
 
             return Response(
                 serializer.data,
@@ -72,6 +80,9 @@ class ApproveExpenseView(APIView):
         expense.approved_by = request.user
         expense.save()
 
+        # Queue celery task to send approval email notification
+        send_approval_email_task.delay(expense.id)
+
         return Response({
             "message": "Expense approved"
         })
@@ -93,6 +104,9 @@ class RejectExpenseView(APIView):
         expense.status = 'REJECTED'
         expense.approved_by = request.user
         expense.save()
+
+        # Queue celery task to send rejection email notification
+        send_rejection_email_task.delay(expense.id)
 
         return Response({
             "message": "Expense rejected"
