@@ -36,6 +36,12 @@ class Expense(models.Model):
         default='PENDING'
     )
     
+    city = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True
+    )
+    
     approved_by = models.ForeignKey(
         User,
         null=True,

@@ -73,3 +73,38 @@ A Django REST Framework backend application designed to streamline employee expe
 
 3. **Make Requests**:
    * Send requests to the respective endpoints listed above. Ensure your user has the correct role (`ADMIN`, `MANAGER`, or `EMPLOYEE`) for the endpoint you are testing.
+
+---
+
+## Google OAuth & Testing Dashboard
+
+We support Google OAuth login and a built-in HTML Testing Dashboard:
+
+* **HTML Testing Dashboard URL**: `GET http://localhost:8000/api/users/test-oauth/`
+* **Get OAuth Redirection URL**: `GET /api/users/google/login/?role=ADMIN&redirect=true`
+
+---
+
+## Background Services (Redis & Celery)
+
+To process background email notifications, you must run Redis and the Celery worker:
+
+### 1. Start Redis Server
+```bash
+# Install Redis (if not installed)
+brew install redis
+
+# Run Redis in the foreground
+redis-server
+```
+
+### 2. Start Celery Worker
+```bash
+# Run Celery worker for the project
+venv/bin/celery -A config worker --loglevel=info
+```
+
+### 3. Start Django Server
+```bash
+venv/bin/python manage.py runserver
+```

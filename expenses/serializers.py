@@ -10,6 +10,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
             'id',
             'title',
             'description',
+            'city',
             'original_amount',
             'original_currency',
             'converted_amount_inr',
