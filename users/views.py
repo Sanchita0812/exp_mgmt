@@ -20,6 +20,14 @@ class GoogleLoginUrlView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         
+        # Get requested role (default to EMPLOYEE)
+        role = request.GET.get("role", "EMPLOYEE").upper()
+        if role not in ["ADMIN", "MANAGER", "EMPLOYEE"]:
+            return Response(
+                {"error": f"Invalid role choice '{role}'. Allowed roles are: ADMIN, MANAGER, EMPLOYEE."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         # Google OAuth authorization URL parameters
         params = {
             "client_id": settings.GOOGLE_CLIENT_ID,
@@ -28,6 +36,7 @@ class GoogleLoginUrlView(APIView):
             "scope": "openid email profile",
             "access_type": "offline",
             "prompt": "select_account",
+            "state": role,  # Pass role through state parameter
         }
         
         url = "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(params)
@@ -108,6 +117,10 @@ class GoogleCallbackView(APIView):
         first_name = userinfo.get("given_name", "")
         last_name = userinfo.get("family_name", "")
 
+        # Extract the role from the state parameter
+        state = request.GET.get("state", "EMPLOYEE").upper()
+        assigned_role = state if state in ["ADMIN", "MANAGER", "EMPLOYEE"] else "EMPLOYEE"
+
         # Get or create the user
         try:
             user = User.objects.get(email=email)
@@ -126,7 +139,7 @@ class GoogleCallbackView(APIView):
                 email=email,
                 first_name=first_name,
                 last_name=last_name,
-                role="EMPLOYEE"  # default role
+                role=assigned_role  # assign role chosen from state
             )
 
         # Generate JWT tokens for our app
