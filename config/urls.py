@@ -12,6 +12,7 @@ def api_root(request):
         "endpoints": {
             "token_obtain": "/api/token/",
             "token_refresh": "/api/token/refresh/",
+            "google_login": "/api/users/google/login/",
             "admin": "/admin/"
         }
     })
@@ -30,5 +31,6 @@ urlpatterns = [
         name='token_refresh'
     ),
 
+    path('api/users/', include('users.urls')),
     path('api/expenses/', include('expenses.urls')),
 ]
