@@ -146,7 +146,8 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
 
 # Email Configuration (Google SMTP / Email configuration via Environment Variables)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# Use a certifi-backed EmailBackend to ensure TLS cert verification on macOS
+EMAIL_BACKEND = 'config.email_backend.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
